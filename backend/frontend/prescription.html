@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prescription Analyzer</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #2c3e50;
+            --background-color: #1a1a1a;
+            --card-background: #2d2d2d;
+            --text-color: #ffffff;
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .navbar {
+            width: 100%;
+            background-color: var(--secondary-color);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .back-button {
+            color: var(--text-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .back-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            padding: 2rem;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #upload-container, #output-container {
+            flex: 1;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            transition: var(--transition);
+        }
+
+        #upload-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px dashed var(--primary-color);
+            position: relative;
+        }
+
+        #upload-container:hover {
+            background-color: rgba(74, 144, 226, 0.1);
+        }
+
+        #upload-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        #upload-text {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .upload-hint {
+            font-size: 0.9rem;
+            color: #888;
+            text-align: center;
+        }
+
+        #selected-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: var(--border-radius);
+            margin-top: 1rem;
+            display: none;
+        }
+
+        #output-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #output-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        #output {
+            flex: 1;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            background-color: rgba(255, 107, 107, 0.1);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .success-message {
+            color: #51cf66;
+            background-color: rgba(81, 207, 102, 0.1);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-top: 1rem;
+            display: none;
+        }
+
+        /* Analysis Results Styling */
+        .analysis-section {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .analysis-section h3 {
+            color: var(--primary-color);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .medicine-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .medicine-item {
+            background-color: rgba(255, 255, 255, 0.03);
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+
+        .medicine-name {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .medicine-details {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-left: 1rem;
+        }
+
+        .analysis-highlight {
+            background-color: rgba(74, 144, 226, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            margin: 0.5rem 0;
+            color: var(--primary-color);
+        }
+
+        .analysis-warning {
+            background-color: rgba(255, 107, 107, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            margin: 0.5rem 0;
+            color: #ff6b6b;
+        }
+
+        .analysis-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .info-item {
+            background-color: rgba(255, 255, 255, 0.03);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+        }
+
+        .info-label {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .info-value {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 1rem;
+            }
+
+            #upload-container, #output-container {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/" class="back-button">
+            <span class="material-icons">arrow_back</span>
+            Back to Home
+        </a>
+        <h1>Prescription Analyzer</h1>
+        <div style="width: 100px;"></div> <!-- Spacer for alignment -->
+    </div>
+
+    <div class="container">
+        <div id="upload-container" onclick="document.getElementById('file-input').click()">
+            <div id="upload-icon">
+                <span class="material-icons">cloud_upload</span>
+            </div>
+            <div id="upload-text">Click to upload your prescription image</div>
+            <div class="upload-hint">Supported formats: JPG, PNG, PDF</div>
+            <input type="file" id="file-input" accept="image/*,.pdf" onchange="handleFileUpload(event)" style="display: none;">
+            <img id="selected-image" src="" alt="Selected Prescription Image">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <div>Analyzing prescription...</div>
+            </div>
+            <div class="error-message"></div>
+            <div class="success-message"></div>
+        </div>
+
+        <div id="output-container">
+            <div id="output-title">Analysis Results</div>
+            <div id="output">
+                <p>Your prescription analysis will appear here after uploading.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Show loading state
+            const loading = document.querySelector('.loading');
+            const errorMessage = document.querySelector('.error-message');
+            const successMessage = document.querySelector('.success-message');
+            const uploadContainer = document.getElementById('upload-container');
+            
+            loading.style.display = 'block';
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            uploadContainer.style.pointerEvents = 'none';
+                
+                // Display the selected image
+                const imgElement = document.getElementById('selected-image');
+            if (file.type.startsWith('image/')) {
+                imgElement.src = URL.createObjectURL(file);
+                imgElement.style.display = 'block';
+            } else {
+                imgElement.style.display = 'none';
+            }
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+                try {
+                    const response = await fetch('http://localhost:3000/prescription/new_prescription', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                    const result = await response.text();
+                    // Format the analysis results
+                    const formattedResult = formatAnalysisResult(result);
+                    document.getElementById('output').innerHTML = formattedResult;
+                    successMessage.textContent = 'Prescription analyzed successfully!';
+                    successMessage.style.display = 'block';
+                    // --- Store prescription in Firebase ---
+                    const userData = JSON.parse(sessionStorage.getItem('user'));
+                    if (userData && userData.id) {
+                        const prescForm = new FormData();
+                        prescForm.append('prescription', file);
+                        prescForm.append('userId', userData.id);
+                        prescForm.append('analysis', result);
+                        await fetch('/history/store-prescription', {
+                            method: 'POST',
+                            body: prescForm
+                        });
+                    }
+                    } else {
+                        const errorResult = await response.json();
+                    throw new Error(errorResult.message || 'Failed to analyze prescription');
+                    }
+                } catch (error) {
+                    console.error('Error during file upload:', error);
+                errorMessage.textContent = error.message || 'An error occurred while analyzing the prescription.';
+                errorMessage.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+                uploadContainer.style.pointerEvents = 'auto';
+            }
+        }
+
+        function formatAnalysisResult(result) {
+            try {
+                // Try to parse if it's JSON
+                const data = JSON.parse(result);
+                return formatStructuredData(data);
+            } catch {
+                // If not JSON, format as plain text
+                return formatPlainText(result);
+            }
+        }
+
+        function formatStructuredData(data) {
+            let html = '';
+            
+            // Prescription Details Section
+            if (data.prescriptionDetails) {
+                html += `
+                    <div class="analysis-section">
+                        <h3>Prescription Details</h3>
+                        <div class="analysis-info">
+                            ${Object.entries(data.prescriptionDetails).map(([key, value]) => `
+                                <div class="info-item">
+                                    <div class="info-label">${key}</div>
+                                    <div class="info-value">${value}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Medicines Section
+            if (data.medicines && data.medicines.length > 0) {
+                html += `
+                    <div class="analysis-section">
+                        <h3>Prescribed Medicines</h3>
+                        <ul class="medicine-list">
+                            ${data.medicines.map(medicine => `
+                                <li class="medicine-item">
+                                    <div class="medicine-name">${medicine.name}</div>
+                                    <div class="medicine-details">
+                                        ${medicine.dosage ? `<div>Dosage: ${medicine.dosage}</div>` : ''}
+                                        ${medicine.frequency ? `<div>Frequency: ${medicine.frequency}</div>` : ''}
+                                        ${medicine.duration ? `<div>Duration: ${medicine.duration}</div>` : ''}
+                                    </div>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // Warnings Section
+            if (data.warnings && data.warnings.length > 0) {
+                html += `
+                    <div class="analysis-section">
+                        <h3>Important Warnings</h3>
+                        ${data.warnings.map(warning => `
+                            <div class="analysis-warning">${warning}</div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // Additional Notes
+            if (data.notes) {
+                html += `
+                    <div class="analysis-section">
+                        <h3>Additional Notes</h3>
+                        <div class="analysis-highlight">${data.notes}</div>
+                    </div>
+                `;
+            }
+
+            return html || '<p>No structured data available</p>';
+        }
+
+        function formatPlainText(text) {
+            // Split text into sections based on common delimiters
+            const sections = text.split(/\n\n|\r\n\r\n/);
+            
+            return `
+                <div class="analysis-section">
+                    ${sections.map(section => {
+                        if (section.trim()) {
+                            return `<div class="medicine-item">${section.trim()}</div>`;
+                        }
+                        return '';
+                    }).join('')}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

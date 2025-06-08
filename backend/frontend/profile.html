@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script>
+    // Check login status and display user info when page loads
+    window.onload = function() {
+      const loggeduser = sessionStorage.getItem('user');
+      if (!loggeduser) {
+        window.location.href = '/login';
+        return;
+      }
+
+      try {
+        const userData = JSON.parse(loggeduser);
+        const name = document.getElementsByClassName('name')[0];
+        const email = document.getElementsByClassName('email')[0];
+        const phone = document.getElementsByClassName('phone')[0];
+        const avatar = document.getElementById('avatar');
+
+        // Display user's information
+        const userName = userData.name || 'User';
+        name.innerHTML = userName;
+        email.innerHTML = userData.email || 'Email not available';
+        phone.innerHTML = userData.phone || 'Phone number not available';
+
+        // Set avatar to first letter of name
+        avatar.textContent = userName.charAt(0);
+
+        // Fetch all user history (chats, xrays, prescriptions)
+        fetchUserHistory();
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        window.location.href = '/login';
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --primary-color: #4a90e2;
+      --secondary-color: #2c3e50;
+      --background-color: #1a1a1a;
+      --card-background: #2d2d2d;
+      --text-color: #ffffff;
+      --border-radius: 12px;
+      --transition: all 0.3s ease;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      min-height: 100vh;
+    }
+
+    .navbar {
+      background-color: var(--secondary-color);
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .back-button {
+      color: var(--text-color);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius);
+      transition: var(--transition);
+    }
+
+    .back-button:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .navbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logout-button {
+      color: var(--text-color);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius);
+      transition: var(--transition);
+      background-color: rgba(255, 0, 0, 0.2);
+      border: 1px solid rgba(255, 0, 0, 0.3);
+    }
+
+    .logout-button:hover {
+      background-color: rgba(255, 0, 0, 0.3);
+    }
+
+    .profile-header {
+      background-color: var(--secondary-color);
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .avatar {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      margin-bottom: 1rem;
+      border: 4px solid var(--primary-color);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      font-weight: 700;
+      color: var(--text-color);
+      background: linear-gradient(135deg, var(--primary-color), #2c3e50);
+      text-transform: uppercase;
+    }
+
+    .name {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0.5rem 0;
+      color: var(--text-color);
+    }
+
+    .email, .phone {
+      font-size: 1.1rem;
+      color: #a0a0a0;
+      margin: 0.5rem 0;
+    }
+
+    .chat-history-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .chat-history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .chat-history-title {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+      margin: 0;
+    }
+
+    .chat-history {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .chat-entry {
+      background-color: var(--card-background);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: var(--transition);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .chat-entry:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      border-color: var(--primary-color);
+    }
+
+    .chat-timestamp {
+      font-size: 0.9rem;
+      color: #888;
+      margin-bottom: 0.5rem;
+    }
+
+    .chat-content {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .chat-message {
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      max-width: 80%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chat-message::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transform: translateX(-100%);
+      transition: var(--transition);
+    }
+
+    .chat-entry:hover .chat-message::before {
+      transform: translateX(100%);
+    }
+
+    .chat-message.user {
+      background-color: var(--primary-color);
+      color: white;
+      justify-self: end;
+    }
+
+    .chat-message.ai {
+      background-color: #444;
+      color: white;
+      justify-self: start;
+    }
+
+    .chat-message-header {
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .chat-message-content {
+      font-size: 1.1rem;
+      line-height: 1.4;
+    }
+
+    .no-chats {
+      text-align: center;
+      padding: 3rem;
+      color: #888;
+      font-size: 1.2rem;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 2rem auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error-message {
+      text-align: center;
+      color: #ff6b6b;
+      padding: 2rem;
+      background-color: rgba(255, 107, 107, 0.1);
+      border-radius: var(--border-radius);
+      margin: 1rem 0;
+    }
+
+    @media (max-width: 768px) {
+      .chat-history-container {
+        padding: 1rem;
+      }
+
+      .chat-message {
+        max-width: 90%;
+      }
+
+      .profile-header {
+        padding: 1rem;
+      }
+
+      .avatar {
+        width: 120px;
+        height: 120px;
+      }
+    }
+
+    .history-section {
+        margin-top: 2rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+    }
+
+    .history-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .history-tab {
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .history-tab.active {
+        background: var(--primary-color);
+    }
+
+    .history-content {
+        display: none;
+    }
+
+    .history-section .history-content.active {
+        display: block;
+    }
+
+    .history-item {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+    }
+
+    .history-item img {
+        max-width: 100%;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+    }
+
+    .timestamp {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+    }
+
+    .analysis-html p, .analysis-html h2, .analysis-html strong, .analysis-html em {
+        margin: 0.2em 0;
+        color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <a href="/" class="back-button">
+      <span class="material-icons">arrow_back</span>
+      Back to Home
+    </a>
+    <h1>Profile</h1>
+    <div class="navbar-actions">
+      <button class="logout-button" onclick="logout()">
+        <span class="material-icons">logout</span>
+        Logout
+      </button>
+    </div>
+  </div>
+
+  <div class="profile-header">
+    <div class="avatar" id="avatar"></div>
+    <div class="name"></div>
+    <div class="email"></div>
+    <div class="phone"></div>
+  </div>
+
+  <div class="chat-history-container">
+    <div class="chat-history-header">
+      <h2 class="chat-history-title">Your Chat History</h2>
+    </div>
+  <div class="chat-history" id="chatHistory"></div>
+  </div>
+
+  <div class="history-section">
+    <h2>Your History</h2>
+    <div class="history-tabs">
+        <div class="history-tab" onclick="showHistoryTab(this)" data-target="chats-history">Chats</div>
+        <div class="history-tab" onclick="showHistoryTab(this)" data-target="xrays-history">X-Rays</div>
+        <div class="history-tab active" onclick="showHistoryTab(this)" data-target="prescriptions-history">Prescriptions</div>
+    </div>
+    
+    <div id="chats-history" class="history-content">
+        <!-- Chat history will be populated here -->
+    </div>
+    
+    <div id="xrays-history" class="history-content">
+        <!-- X-ray history will be populated here -->
+    </div>
+    
+    <div id="prescriptions-history" class="history-content active">
+        <!-- Prescription history will be populated here -->
+    </div>
+  </div>
+
+  <div id="prescriptions-debug" style="background:#222;color:#fff;padding:1em;margin:1em 0;border-radius:8px;display:none;"></div>
+
+  <script>
+    async function fetchUserHistory() {
+        try {
+            const userData = JSON.parse(sessionStorage.getItem('user'));
+            if (!userData || !userData.id) {
+                console.error('Fetch history: No user data found.');
+                return;
+            }
+
+            console.log('Fetching user history for user:', userData.id);
+            const response = await fetch(`/history/get-history/${userData.id}`);
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to fetch user history: ${response.status} ${response.statusText} - ${errorText}`);
+            }
+            const data = await response.json();
+            console.log('User history data received:', data);
+
+            // DEBUG: Remove raw prescription data display
+            const debugDiv = document.getElementById('prescriptions-debug');
+            debugDiv.style.display = 'none'; // Hide debug div now that it's fixed
+            debugDiv.innerHTML = ''; // Clear its content
+
+            // Populate chat history
+            const chatsContainer = document.getElementById('chats-history');
+            const userChats = data.chats ? Object.values(data.chats) : [];
+            chatsContainer.innerHTML = (userChats.length > 0) ? userChats.map(chat => `
+                <div class="history-item">
+                    <div><strong>You:</strong> ${chat.query || chat.user}</div>
+                    <div><strong>AI:</strong> ${chat.response || chat.ai}</div>
+                    <div class="timestamp">${new Date(chat.timestamp).toLocaleString()}</div>
+                </div>
+            `).join('') : '<div class="no-chats">No chat history available</div>';
+
+            // Populate X-ray history
+            const xraysContainer = document.getElementById('xrays-history');
+            const userXrays = data.xrays ? Object.values(data.xrays) : [];
+            xraysContainer.innerHTML = (userXrays.length > 0) ? userXrays.map(xray => `
+                <div class="history-item">
+                    <img src="${xray.imageUrl}" alt="X-ray image" style="max-width:200px;">
+                    <div><strong>Analysis:</strong> ${xray.analysis}</div>
+                    <div class="timestamp">${new Date(xray.timestamp).toLocaleString()}</div>
+                </div>
+            `).join('') : '<div class="no-chats">No X-ray history available</div>';
+
+            // Populate prescription history (render analysis as HTML)
+            const prescriptionsContainer = document.getElementById('prescriptions-history');
+            const userPrescriptions = data.prescriptions ? Object.values(data.prescriptions) : [];
+            if (userPrescriptions.length > 0) {
+                prescriptionsContainer.innerHTML = ''; // Clear existing content
+                userPrescriptions.forEach(prescription => {
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    div.innerHTML = `
+                        <img src="${prescription.imageUrl}" alt="Prescription image" style="max-width:200px;">
+                        <div><strong>Analysis:</strong> <span class="analysis-html"></span></div>
+                        <div class="timestamp">${new Date(prescription.timestamp).toLocaleString()}</div>
+                    `;
+                    // Render analysis as HTML
+                    div.querySelector('.analysis-html').innerHTML = prescription.analysis;
+                    prescriptionsContainer.appendChild(div);
+                });
+                prescriptionsContainer.style.display = 'block'; // Ensure display is block
+            } else {
+                prescriptionsContainer.innerHTML = '<div class="no-chats">No prescription history available</div>';
+                prescriptionsContainer.style.display = 'block'; // Ensure display is block even if empty
+            }
+            console.log('Prescription history container current display style (after population):', prescriptionsContainer.style.display);
+            console.log('Prescription history container current class list (after population):', prescriptionsContainer.classList);
+            console.log('Prescription history container offsetHeight (after population):', prescriptionsContainer.offsetHeight);
+            console.log('Prescription history container offsetWidth (after population):', prescriptionsContainer.offsetWidth);
+            console.log('Prescription history container computed display style:', window.getComputedStyle(prescriptionsContainer).display);
+            console.log('Prescription history container innerHTML (first 500 chars):', prescriptionsContainer.innerHTML.substring(0, 500));
+
+        } catch (error) {
+            console.error('Error fetching user history:', error);
+            document.getElementById('chats-history').innerHTML = `<div class='error-message'>Failed to load chat history<br>${error.message}</div>`;
+        }
+    }
+
+    function logout() {
+      // Clear session storage
+      sessionStorage.removeItem('user');
+      // Redirect to login page
+      window.location.href = '/login';
+    }
+
+    function showHistoryTab(tabElement) {
+        // Hide all content divs and remove 'active' class from all tabs
+        document.querySelectorAll('.history-content').forEach(content => {
+            content.style.display = 'none'; // Directly set display to none
+            content.classList.remove('active');
+            console.log(`Hidden ${content.id}. Current display: ${content.style.display}`);
+        });
+        
+        document.querySelectorAll('.history-tab').forEach(tab => {
+            tab.classList.remove('active');
+            console.log(`Removed active from tab ${tab.textContent}`);
+        });
+        
+        // Determine target content ID from the tab's data-target attribute
+        const targetId = tabElement.dataset.target; 
+        if (!targetId) {
+            console.error('Data target attribute missing on tab:', tabElement);
+            return;
+        }
+        const targetContent = document.getElementById(targetId);
+
+        // Show selected content and activate tab
+        if (targetContent) {
+            targetContent.style.display = 'block'; // Directly set display to block
+            targetContent.classList.add('active'); // Keep active class for styling consistency
+            console.log(`Shown ${targetContent.id}. Current display: ${targetContent.style.display}`);
+        }
+        tabElement.classList.add('active');
+        console.log(`Added active to tab ${tabElement.textContent}`);
+    }
+  </script>
+</body>
+</html>

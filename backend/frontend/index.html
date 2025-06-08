@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HealthAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <script>
+      // Check login status immediately when page loads
+      window.onload = function() {
+        const loggeduser = sessionStorage.getItem('user');
+        if (!loggeduser) {
+          window.location.href = '/login';
+          return;
+        }
+        
+        try {
+          const userData = JSON.parse(loggeduser);
+          const userName = userData.name || 'User';
+          const avatar = document.getElementById('profile-avatar');
+          const profileName = document.querySelector('.profile-name');
+          
+          // Update avatar and name
+          avatar.textContent = userName.charAt(0);
+          profileName.textContent = userName;
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+        }
+
+        // Add staggered animation to service cards
+        const cards = document.querySelectorAll('.service-card');
+        cards.forEach((card, index) => {
+          card.style.animationDelay = `${index * 0.1}s`;
+        });
+      }
+    </script>
+    <style>
+      :root {
+        --primary-gradient: linear-gradient(135deg, #4a90e2 0%, #2c3e50 100%);
+        --secondary-gradient: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        
+        --background-primary: #0a192f;
+        --background-secondary: #112240;
+        --background-card: rgba(255, 255, 255, 0.05);
+        --background-glass: rgba(255, 255, 255, 0.1);
+        
+        --text-primary: #ffffff;
+        --text-secondary: #b8bcc8;
+        --text-accent: #4a90e2;
+        
+        --border-radius: 20px;
+        --border-radius-lg: 24px;
+        --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.2);
+        --shadow-lg: 0 16px 64px rgba(0, 0, 0, 0.3);
+        --shadow-glow: 0 0 40px rgba(74, 144, 226, 0.3);
+        
+        --transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+        --transition-fast: all 0.2s ease;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        background: var(--background-primary);
+        background-image: 
+          radial-gradient(circle at 25% 25%, rgba(74, 144, 226, 0.1) 0%, transparent 50%),
+          radial-gradient(circle at 75% 75%, rgba(33, 147, 176, 0.1) 0%, transparent 50%);
+        color: var(--text-primary);
+        line-height: 1.6;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+          radial-gradient(600px circle at 20% 30%, rgba(74, 144, 226, 0.15), transparent),
+          radial-gradient(800px circle at 80% 70%, rgba(33, 147, 176, 0.1), transparent),
+          radial-gradient(400px circle at 40% 80%, rgba(67, 233, 123, 0.1), transparent);
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem 5%;
+        background: rgba(26, 26, 46, 0.8);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .logo::before {
+        content: '🏥';
+        margin-right: 0.5rem;
+        font-size: 2rem;
+      }
+
+      .user-actions {
+        display: flex;
+        align-items: center;
+      }
+
+      .profile-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+      }
+
+      .profile-container:hover {
+        background: var(--background-glass);
+      }
+
+      .profile-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .profile-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+      }
+
+      .profile-role {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin: 0;
+      }
+
+      .profile-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        background: var(--primary-gradient);
+        text-transform: uppercase;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .profile-avatar::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: var(--transition);
+      }
+
+      .profile-avatar:hover {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: var(--shadow-glow);
+      }
+
+      .profile-avatar:hover::before {
+        left: 100%;
+      }
+
+      .login-option {
+        display: none;
+        position: absolute;
+        bottom: -50px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--background-glass);
+        backdrop-filter: blur(20px);
+        color: var(--text-primary);
+        padding: 0.75rem 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        white-space: nowrap;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        cursor: pointer;
+      }
+
+      .profile-container:hover .login-option {
+        display: block;
+        animation: slideUp 0.3s ease forwards;
+      }
+
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+        to { opacity: 1; transform: translateX(-50%) translateY(0); }
+      }
+
+      .login-option:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateX(-50%) translateY(-2px);
+      }
+
+      main {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
+        text-align: center;
+      }
+
+      .hero-section {
+        margin-bottom: 4rem;
+        animation: fadeInUp 0.8s ease forwards;
+      }
+
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      h1 {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 700;
+        margin-bottom: 1rem;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+      }
+
+      h2 {
+        font-size: clamp(1.2rem, 3vw, 1.8rem);
+        font-weight: 400;
+        margin-bottom: 2rem;
+        color: var(--text-secondary);
+        opacity: 0.9;
+      }
+
+      .service-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 4rem;
+        perspective: 1000px;
+      }
+
+      .service-card {
+        background: var(--background-card);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--border-radius-lg);
+        padding: 3rem 2rem;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        min-height: 200px;
+        animation: cardSlideIn 0.6s ease forwards;
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      @keyframes cardSlideIn {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .service-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+        opacity: 0;
+        transition: var(--transition);
+        z-index: 1;
+      }
+
+      .service-card::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.1), transparent);
+        opacity: 0;
+        transition: var(--transition);
+        animation: rotate 8s linear infinite;
+        z-index: 0;
+      }
+
+      @keyframes rotate {
+        to { transform: rotate(360deg); }
+      }
+
+      .service-card:hover {
+        transform: translateY(-10px) rotateX(5deg);
+        box-shadow: var(--shadow-lg);
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+
+      .service-card:hover::before {
+        opacity: 1;
+      }
+
+      .service-card:hover::after {
+        opacity: 1;
+      }
+
+      .service-card .material-icons {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+        position: relative;
+        z-index: 2;
+        transition: var(--transition);
+      }
+
+      .service-card:hover .material-icons {
+        transform: scale(1.1);
+      }
+
+      .service-card span:last-child {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 1.3rem;
+        position: relative;
+        z-index: 2;
+        transition: var(--transition);
+      }
+
+      .service-card:hover span:last-child {
+        color: var(--text-primary);
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+      }
+
+      /* Individual card gradients */
+      .service-card:nth-child(1) { background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(255, 107, 107, 0.05)); }
+      .service-card:nth-child(2) { background: linear-gradient(135deg, rgba(162, 155, 254, 0.2), rgba(162, 155, 254, 0.05)); }
+      .service-card:nth-child(3) { background: linear-gradient(135deg, rgba(116, 185, 255, 0.2), rgba(116, 185, 255, 0.05)); }
+      .service-card:nth-child(4) { background: linear-gradient(135deg, rgba(85, 239, 196, 0.2), rgba(85, 239, 196, 0.05)); }
+
+      .recent-activities {
+        background: var(--background-card);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 3rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-top: 2rem;
+        position: relative;
+        overflow: hidden;
+        animation: fadeInUp 0.8s ease 0.4s forwards;
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      .recent-activities::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: var(--primary-gradient);
+      }
+
+      .recent-activities h3 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 600;
+      }
+
+      .recent-activities p {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+      }
+
+      .view-more {
+        display: inline-flex;
+        align-items: center;
+        padding: 1rem 2rem;
+        background: var(--primary-gradient);
+        color: var(--text-primary);
+        text-decoration: none;
+        font-weight: 600;
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .view-more::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: var(--transition);
+      }
+
+      .view-more:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .view-more:hover::before {
+        left: 100%;
+      }
+
+      .view-more .material-icons {
+        margin-left: 0.5rem;
+        transition: var(--transition);
+      }
+      
+      .view-more:hover .material-icons {
+        transform: translateX(5px);
+      }
+
+      /* Floating particles animation */
+      .floating-particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: rgba(74, 144, 226, 0.3);
+        border-radius: 50%;
+        animation: float 15s infinite linear;
+      }
+
+      @keyframes float {
+        0% {
+          transform: translateY(100vh) rotate(0deg);
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        90% {
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-100px) rotate(360deg);
+          opacity: 0;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .service-options {
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
+        }
+
+        .service-card {
+          padding: 2rem 1.5rem;
+          min-height: 160px;
+        }
+
+        main {
+          padding: 2rem 1rem;
+        }
+
+        .recent-activities {
+          padding: 2rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        header {
+          padding: 1rem 3%;
+        }
+
+        .profile-avatar {
+          width: 50px;
+          height: 50px;
+          font-size: 1.2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="floating-particles">
+      <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+      <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+      <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+      <div class="particle" style="left: 40%; animation-delay: 6s;"></div>
+      <div class="particle" style="left: 50%; animation-delay: 8s;"></div>
+      <div class="particle" style="left: 60%; animation-delay: 10s;"></div>
+      <div class="particle" style="left: 70%; animation-delay: 12s;"></div>
+      <div class="particle" style="left: 80%; animation-delay: 14s;"></div>
+      <div class="particle" style="left: 90%; animation-delay: 16s;"></div>
+    </div>
+
+    <header>
+      <div class="logo">
+        HealthAI
+      </div>
+      <div class="user-actions">
+        <div class="profile-container" onclick="window.location.href='/profile'">
+          <div id="profile-avatar" class="profile-avatar">U</div>
+          <div class="profile-info">
+            <p class="profile-name">User</p>
+            <p class="profile-role">View Profile</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="hero-section">
+      <h2>Welcome to your HealthAI Cockpit</h2>
+      <h1>What do you want to explore today?</h1>
+      </div>
+      
+      <div class="service-options">
+        <a href="/prescription_analyser" class="service-card">
+          <span class="material-icons">description</span>
+          <span>Prescription Analysis</span>
+        </a>
+        <a href="medicalQuery" class="service-card">
+          <span class="material-icons">mail</span>
+          <span>Medical Query</span>
+        </a>
+        <a href="/symptom2disease" class="service-card">
+          <span class="material-icons">event</span>
+          <span>Symptom to Disease Mapping</span>
+        </a>
+        <a href="/fracture" class="service-card">
+          <span class="material-icons">language</span>
+          <span>X-Ray Analysis</span>
+        </a>
+      </div>
+      
+      <section class="recent-activities" id="recent-activities">
+        <h3>My Health Records</h3>
+        <p>View your medical history and previous consultations</p>
+        <a href="/profile" class="view-more">
+          View Records <span class="material-icons">arrow_forward</span>
+        </a>
+      </section>
+    </main>
+  </body>
+</html>

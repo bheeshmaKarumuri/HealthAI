@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build files
+dist/
+build/
+*.log
+
+# Uploads directory
+uploads/
+
+# Firebase config
+firebase-config.json
+
+# Model files
+*.pt
+*.pth
+*.h5
+*.model
+*.weights
+
+# Training data
+*.csv
+*.json
+*.txt
+!package.json
+!package-lock.json 

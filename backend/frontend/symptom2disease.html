@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <title>Symptom to Disease</title>
+    <style>
+      :root {
+        --primary-color: #4a90e2;
+        --secondary-color: #2c3e50;
+        --background-color: #1a1a1a;
+        --card-background: #2d2d2d;
+        --text-color: #ffffff;
+        --border-radius: 12px;
+        --transition: all 0.3s ease;
+      }
+
+      body {
+        font-family: "Roboto", sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: var(--background-color);
+        color: var(--text-color);
+        min-height: 100vh;
+      }
+
+      .navbar {
+        background-color: var(--secondary-color);
+        padding: 1rem 2rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .back-button {
+        color: var(--text-color);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+      }
+
+      .back-button:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+      }
+
+      h1 {
+        color: var(--text-color);
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 2.5rem;
+        font-weight: 700;
+      }
+
+      .search-container {
+        position: relative;
+        max-width: 600px;
+        margin: 0 auto 2rem;
+      }
+
+      #searchInput {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        font-size: 1.1rem;
+        border-radius: var(--border-radius);
+        border: 2px solid var(--primary-color);
+        background-color: var(--card-background);
+        color: var(--text-color);
+        transition: var(--transition);
+      }
+
+      #searchInput:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.3);
+      }
+
+      .search-icon {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--primary-color);
+      }
+
+      .every {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+
+      .symptoms {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        max-height: 600px;
+        overflow-y: auto;
+        padding: 1rem;
+        background-color: var(--card-background);
+        border-radius: var(--border-radius);
+      }
+
+      .bubble {
+        background-color: var(--card-background);
+        color: var(--text-color);
+        border: 2px solid var(--primary-color);
+        border-radius: var(--border-radius);
+        padding: 0.8rem 1.2rem;
+        cursor: pointer;
+        text-align: center;
+        transition: var(--transition);
+        font-size: 0.95rem;
+      }
+
+      .bubble:hover {
+        background-color: var(--primary-color);
+        transform: translateY(-2px);
+      }
+
+      .bubble.selected {
+        background-color: var(--primary-color);
+        color: white;
+      }
+
+      .selected-symptoms {
+        background-color: var(--card-background);
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        height: fit-content;
+      }
+
+      .selected-symptoms h2 {
+        color: var(--primary-color);
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+        border-bottom: 2px solid var(--primary-color);
+        padding-bottom: 0.5rem;
+      }
+
+      #selectedList {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      #selectedList li {
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 1rem;
+        margin-bottom: 0.8rem;
+        border-radius: var(--border-radius);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .remove-symptom {
+        color: #ff6b6b;
+        cursor: pointer;
+        padding: 0.3rem;
+        border-radius: 50%;
+        transition: var(--transition);
+      }
+
+      .remove-symptom:hover {
+        background-color: rgba(255, 107, 107, 0.1);
+      }
+
+      .disease-prediction {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background-color: rgba(74, 144, 226, 0.1);
+        border-radius: var(--border-radius);
+        border-left: 4px solid var(--primary-color);
+      }
+
+      .disease-prediction h3 {
+        color: var(--primary-color);
+        margin-top: 0;
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+      }
+
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      @media (max-width: 768px) {
+        .every {
+          grid-template-columns: 1fr;
+        }
+
+        .container {
+          padding: 1rem;
+        }
+
+        h1 {
+          font-size: 2rem;
+        }
+      }
+
+      .prediction-result {
+        padding: 1.5rem;
+        background-color: var(--card-background);
+        border-radius: var(--border-radius);
+        text-align: center;
+      }
+
+      .prediction-result h4 {
+        color: var(--primary-color);
+        margin: 0 0 1rem 0;
+        font-size: 1.2rem;
+      }
+
+      .final-prediction {
+        background-color: rgba(74, 144, 226, 0.1);
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        border: 2px solid var(--primary-color);
+        }
+
+      .disease-name {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+
+      .prediction-note {
+        color: #a0a0a0;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+      }
+
+      .model-predictions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      .model-prediction {
+        background-color: rgba(74, 144, 226, 0.1);
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        border-left: 3px solid var(--primary-color);
+      }
+
+      .model-prediction h5 {
+        color: var(--primary-color);
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+      }
+
+      .model-prediction p {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 500;
+      }
+
+      .disclaimer {
+        font-size: 0.85rem;
+        color: #888;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="navbar">
+      <a href="/" class="back-button">
+        <span class="material-icons">arrow_back</span>
+        Back to Home
+      </a>
+      <h1>Symptom to Disease</h1>
+      <div style="width: 100px;"></div>
+    </div>
+
+    <div class="container">
+      <div class="search-container">
+      <input type="text" id="searchInput" placeholder="Search symptoms..." />
+        <span class="material-icons search-icon">search</span>
+      </div>
+
+      <div class="every">
+        <div class="symptoms" id="symptomsContainer"></div>
+        <div class="selected-symptoms">
+          <h2>Selected Symptoms</h2>
+          <ul id="selectedList"></ul>
+          <div class="disease-prediction" id="diseasePrediction" style="display: none;">
+            <h3>Predicted Disease</h3>
+            <div id="predictionResult"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const symptoms = [
+        "Itching",
+        "Skin Rash",
+        "Nodal Skin Eruptions",
+        "Continuous Sneezing",
+        "Shivering",
+        "Chills",
+        "Joint Pain",
+        "Stomach Pain",
+        "Acidity",
+        "Ulcers on Tongue",
+        "Muscle Wasting",
+        "Vomiting",
+        "Burning Micturition",
+        "Spotting Urination",
+        "Fatigue",
+        "Weight Gain",
+        "Anxiety",
+        "Cold Hands and Feet",
+        "Mood Swings",
+        "Weight Loss",
+        "Restlessness",
+        "Lethargy",
+        "Patches in Throat",
+        "Irregular Sugar Level",
+        "Cough",
+        "High Fever",
+        "Sunken Eyes",
+        "Breathlessness",
+        "Sweating",
+        "Dehydration",
+        "Indigestion",
+        "Headache",
+        "Yellowish Skin",
+        "Dark Urine",
+        "Nausea",
+        "Loss of Appetite",
+        "Pain Behind the Eyes",
+        "Back Pain",
+        "Constipation",
+        "Abdominal Pain",
+        "Diarrhoea",
+        "Mild Fever",
+        "Yellow Urine",
+        "Yellowing of Eyes",
+        "Acute Liver Failure",
+        "Fluid Overload",
+        "Swelling of Stomach",
+        "Swelled Lymph Nodes",
+        "Malaise",
+        "Blurred and Distorted Vision",
+        "Phlegm",
+        "Throat Irritation",
+        "Redness of Eyes",
+        "Sinus Pressure",
+        "Runny Nose",
+        "Congestion",
+        "Chest Pain",
+        "Weakness in Limbs",
+        "Fast Heart Rate",
+        "Pain During Bowel Movements",
+        "Pain in Anal Region",
+        "Bloody Stool",
+        "Irritation in Anus",
+        "Neck Pain",
+        "Dizziness",
+        "Cramps",
+        "Bruising",
+        "Obesity",
+        "Swollen Legs",
+        "Swollen Blood Vessels",
+        "Puffy Face and Eyes",
+        "Enlarged Thyroid",
+        "Brittle Nails",
+        "Swollen Extremities",
+        "Excessive Hunger",
+        "Extra Marital Contacts",
+        "Drying and Tingling Lips",
+        "Slurred Speech",
+        "Knee Pain",
+        "Hip Joint Pain",
+        "Muscle Weakness",
+        "Stiff Neck",
+        "Swelling Joints",
+        "Movement Stiffness",
+        "Spinning Movements",
+        "Loss of Balance",
+        "Unsteadiness",
+        "Weakness of One Body Side",
+        "Loss of Smell",
+        "Bladder Discomfort",
+        "Foul Smell of Urine",
+        "Continuous Feel of Urine",
+        "Passage of Gases",
+        "Internal Itching",
+        "Toxic Look (Typhos)",
+        "Depression",
+        "Irritability",
+        "Muscle Pain",
+        "Altered Sensorium",
+        "Red Spots Over Body",
+        "Belly Pain",
+        "Abnormal Menstruation",
+        "Dischromic Patches",
+        "Watering from Eyes",
+        "Increased Appetite",
+        "Polyuria",
+        "Family History",
+        "Mucoid Sputum",
+        "Rusty Sputum",
+        "Lack of Concentration",
+        "Visual Disturbances",
+        "Receiving Blood Transfusion",
+        "Receiving Unsterile Injections",
+        "Coma",
+        "Stomach Bleeding",
+        "Distention of Abdomen",
+        "History of Alcohol Consumption",
+        "Fluid Overload",
+        "Blood in Sputum",
+        "Prominent Veins on Calf",
+        "Palpitations",
+        "Painful Walking",
+        "Pus Filled Pimples",
+        "Blackheads",
+        "Scurring",
+        "Skin Peeling",
+        "Silver Like Dusting",
+        "Small Dents in Nails",
+        "Inflammatory Nails",
+        "Blister",
+        "Red Sore Around Nose",
+        "Yellow Crust Ooze",
+        "Prognosis",
+      ];
+
+      let selectedSymptoms = new Set();
+      const symptomsContainer = document.getElementById('symptomsContainer');
+      const selectedList = document.getElementById('selectedList');
+      const searchInput = document.getElementById('searchInput');
+      const diseasePrediction = document.getElementById('diseasePrediction');
+      const predictionResult = document.getElementById('predictionResult');
+
+      // Initialize symptoms display
+      function initializeSymptoms() {
+        symptomsContainer.innerHTML = '';
+        symptoms.forEach(symptom => {
+          const bubble = document.createElement('div');
+          bubble.className = 'bubble';
+          bubble.textContent = symptom;
+          bubble.onclick = () => toggleSymptom(symptom, bubble);
+          symptomsContainer.appendChild(bubble);
+        });
+      }
+
+      // Toggle symptom selection
+      function toggleSymptom(symptom, element) {
+        if (selectedSymptoms.has(symptom)) {
+          selectedSymptoms.delete(symptom);
+          element.classList.remove('selected');
+        } else {
+          selectedSymptoms.add(symptom);
+          element.classList.add('selected');
+        }
+        updateSelectedList();
+        // Always predict when symptoms change
+        predictDisease();
+      }
+
+      // Update selected symptoms list
+      function updateSelectedList() {
+        selectedList.innerHTML = '';
+        selectedSymptoms.forEach(symptom => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            ${symptom}
+            <span class="material-icons remove-symptom" onclick="removeSymptom('${symptom}')">close</span>
+          `;
+          selectedList.appendChild(li);
+        });
+      }
+
+      // Remove symptom
+      function removeSymptom(symptom) {
+        selectedSymptoms.delete(symptom);
+        const bubbles = document.querySelectorAll('.bubble');
+        bubbles.forEach(bubble => {
+          if (bubble.textContent === symptom) {
+            bubble.classList.remove('selected');
+          }
+        });
+        updateSelectedList();
+        // Always predict when symptoms change
+        predictDisease();
+      }
+
+      // Search functionality
+      searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const bubbles = document.querySelectorAll('.bubble');
+        
+        bubbles.forEach(bubble => {
+          const symptom = bubble.textContent.toLowerCase();
+          if (symptom.includes(searchTerm)) {
+            bubble.style.display = 'block';
+          } else {
+            bubble.style.display = 'none';
+          }
+        });
+      });
+
+      // Predict disease
+      async function predictDisease() {
+        try {
+          // Only show prediction if there are selected symptoms
+          if (selectedSymptoms.size === 0) {
+            diseasePrediction.style.display = 'none';
+            return;
+          }
+
+          diseasePrediction.style.display = 'block';
+          predictionResult.innerHTML = '<div class="loading"><div class="loading-spinner"></div><div>Analyzing symptoms...</div></div>';
+
+          // Convert symptoms to the format expected by the backend
+          const formattedSymptoms = Array.from(selectedSymptoms).map(symptom => 
+            symptom.toLowerCase().replace(/\s+/g, '_')
+          );
+
+          console.log('Sending symptoms:', formattedSymptoms);
+
+          // First check if the Flask server is running
+          try {
+            const healthCheck = await fetch('http://localhost:5001/predict_disease', {
+              method: 'OPTIONS'
+            });
+          } catch (error) {
+            throw new Error('Flask server is not running. Please start the Python backend server.');
+          }
+
+          const response = await fetch('http://localhost:5001/predict_disease', {
+            method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+            body: JSON.stringify({
+              symptoms: formattedSymptoms
+            })
+          });
+
+          console.log('Response status:', response.status);
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Received data:', data);
+            
+            if (data && data.final_prediction) {
+              predictionResult.innerHTML = `
+                <div class="prediction-result">
+                  <h4>Predicted Disease</h4>
+                  <div class="final-prediction">
+                    <span class="disease-name">${data.final_prediction}</span>
+                  </div>
+                </div>
+              `;
+            } else {
+              console.error('Invalid data received:', data);
+              throw new Error('Invalid prediction data received');
+            }
+          } else {
+            const errorText = await response.text();
+            console.error('Server error response:', errorText);
+            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+          }
+        } catch (error) {
+          console.error('Prediction error:', error);
+          predictionResult.innerHTML = `
+            <div class="error-message">
+              <p>Failed to get prediction. Please try again.</p>
+              <p>Error: ${error.message}</p>
+              <p>Please make sure both servers are running:</p>
+              <ol>
+                <li>Node.js server: <code>node app.js</code> in the backend directory</li>
+                <li>Flask server: <code>python app.py</code> in the backend/models directory</li>
+              </ol>
+            </div>
+          `;
+        }
+      }
+
+      // Initialize the page
+      initializeSymptoms();
+    </script>
+  </body>
+</html>
