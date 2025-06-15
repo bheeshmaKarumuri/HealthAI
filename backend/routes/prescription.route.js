@@ -5,7 +5,7 @@ const path = require("path");
 const Tesseract = require("tesseract.js");
 const Groq = require("groq-sdk");
 const groq = new Groq({
-  apiKey: "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",
+  apiKey: "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",
 });
 
 async function recognizeText(image_url) {

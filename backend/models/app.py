@@ -10,6 +10,7 @@ from symptom2disease import DiseasePredictor
 from yoloFractureDetection import process_image
 import cv2
 from PIL import Image, ImageDraw, ImageFont
+import time
 
 # Load your pre-trained model and disease predictor
 disease = DiseasePredictor("../models/SyptomsData/Training.csv")
@@ -74,7 +75,10 @@ async def check_fracture():
     if not os.path.exists(static_dir):
         os.makedirs(static_dir)
 
-    img_path = os.path.join(static_dir, img.filename)
+    # Generate unique filename using timestamp
+    timestamp = int(time.time() * 1000)
+    original_filename = f"{timestamp}_{img.filename}"
+    img_path = os.path.join(static_dir, original_filename)
     img.save(img_path)
 
     try:
@@ -103,8 +107,8 @@ async def check_fracture():
         # Process the image using the yoloFractureDetection module
         output_filename = process_image(img_path, model, class_names)
         
-        # Copy the processed image to static directory
-        processed_filename = f"processed_{os.path.basename(img.filename)}"
+        # Copy the processed image to static directory with unique name
+        processed_filename = f"processed_{original_filename}"
         processed_path = os.path.join(static_dir, processed_filename)
         import shutil
         shutil.copy2(output_filename, processed_path)
@@ -113,7 +117,7 @@ async def check_fracture():
         return jsonify({
             "image_url": f"/static/{processed_filename}",
             "predictions": predictions,
-            "original_image": f"/static/{img.filename}"
+            "original_image": f"/static/{original_filename}"
         })
     except Exception as e:
         print(f"Error processing image: {str(e)}")

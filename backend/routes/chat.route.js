@@ -1,6 +1,6 @@
 const Groq = require("groq-sdk");
 const groq = new Groq({
-  apiKey: "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",
+  apiKey: "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",
 });
 const express = require("express");
 
